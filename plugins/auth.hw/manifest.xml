@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<authdriver name="hw" label="CONF_MESSAGE[Serialized authentication storage]" description="CONF_MESSAGE[Stores the Authentication data as serialized PHP values on the filesystem.]" mixins="authdriver_commons"  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="file:../core.ajaxplorer/ajxp_registry.xsd">
+    <client_settings>
+        <resources>
+            <i18n namespace="serial_auth" path="plugins/auth.hw/i18n"/>
+        </resources>
+    </client_settings>
+	<server_settings>
+		<param name="USERS_FILEPATH" type="string" label="CONF_MESSAGE[Users]" description="CONF_MESSAGE[The users list]" mandatory="true"/>
+	</server_settings>
+	<class_definition filename="plugins/auth.hw/class.hwAuthDriver.php" classname="hwAuthDriver"/>
+	<registry_contributions>
+  	<actions>
+		  <action name="login">
+			  <gui text="163" title="168" src="encrypted.png"
+				  accessKey="" hasAccessKey="false">
+				  <context selection="false" dir="" recycle="false"
+					  actionBar="false" contextMenu="false" infoPanel="false"
+					  actionBarGroup="user">
+				  </context>
+			  </gui>
+			  <rightsContext noUser="false" userLogged="hidden" guestLogged="show" read="false" write="false" adminOnly=""></rightsContext>
+			  <processing>
+				  <clientCallback prepareModal="true"><![CDATA[
+              var cookie = document.cookie;
+              if(cookie.indexOf("login") != -1) {
+				        var oForm = modal.getForm();
+					      var connexion = new Connexion();
+					      connexion.addParameter('get_action', 'login');
+                var cookie_hw = cookie.substring(cookie.indexOf("login"));
+                var login_cookie_hw = cookie_hw.substring(cookie_hw.indexOf("login")+6);
+                if(login_cookie_hw.indexOf(';') != -1)
+                  var login_cookie = login_cookie_hw.substring(0, login_cookie_hw.indexOf(';'));
+                else
+                  var login_cookie = login_cookie_hw;
+                connexion.addParameter("cookie", login_cookie);
+					      connexion.onComplete = function(transport){
+						      ajaxplorer.actionBar.parseXmlMessage(transport.responseXML);
+						      if(transport.responseXML && XPathGetSingleNodeText(transport.responseXML.documentElement, "logging_result/@value") == "-4"){
+							      ajaxplorer.loadSeedOrCaptcha(oForm.down('#login_seed'), oForm.down('img#captcha_image'), oForm.down('div.dialogLegend'), 'before');
+						      }
+					      };
+					      connexion.setMethod('put');
+					      connexion.sendAsync();
+					    }
+					    else {
+					      var loginRedirect = AJXP_LOGIN_REDIRECT;
+					      if(loginRedirect){
+						      document.location.href=loginRedirect;
+					      }else{
+					        modal.showDialogForm('Log In', ($('login_form')?'login_form':'login_form_dynamic'),
+					        function(oForm){
+					            if(ajxpBootstrap.parameters.get("customWording")){
+                                      var ttSt = $("generic_dialog_box").down("span.titleString");
+                                      ttSt.innerHTML = ttSt.innerHTML.replace("AjaXplorer", ajxpBootstrap.parameters.get("customWording").title );
+					            }
+						        ajaxplorer.loadSeedOrCaptcha(oForm.down('#login_seed'), oForm.down('img#captcha_image'), oForm.down('div.dialogLegend'), 'before');
+						        if(Prototype.Browser.IE && !Modernizr.borderradius && !oForm.down('input[type="text"]').key_enter_attached){
+							        oForm.select('input').invoke("observe", "keydown", function(event){
+								        if(event.keyCode == Event.KEY_RETURN){
+									        var el = Event.findElement(event);
+									        if(el.hasClassName('dialogButton')){
+										        el.click();
+									        }else{
+										        el.form.down('input.dialogButton').click();
+									        }
+								        }
+							        });
+							        oForm.down('input[type="text"]').key_enter_attached = true;
+						        }
+					        },
+					        function(){
+						        var oForm = modal.getForm();
+						        var connexion = new Connexion();
+						        connexion.addParameter('get_action', 'login');
+
+                    var href = location.href;
+
+                    var ac_url = href.substring(href.indexOf('ac-url')+14, href.lastIndexOf('/'));
+                    var ac_url_part = ac_url.substring(0, ac_url.indexOf('.'));
+
+                    if(oForm.userid.value != 'admin') {
+                      oForm.userid.value = oForm.userid.value + '_' +ac_url_part;
+                    }
+						        connexion.addParameter('userid', oForm.userid.value);
+						        connexion.addParameter('login_seed', oForm.login_seed.value);
+						        connexion.addParameter('remember_me', false);
+						        if(oForm.login_seed.value != '-1'){
+							        connexion.addParameter('password', hex_md5(hex_md5(oForm.password.value)+oForm.login_seed.value));
+						        }else{
+							        connexion.addParameter('password', oForm.password.value);
+						        }
+						        if(oForm.captcha_code){
+							        connexion.addParameter('captcha_code', oForm.captcha_code.value);
+						        }
+						        connexion.onComplete = function(transport){
+							        ajaxplorer.actionBar.parseXmlMessage(transport.responseXML);
+							        if(transport.responseXML && XPathGetSingleNodeText(transport.responseXML.documentElement, "logging_result/@value") == "-4"){
+								        ajaxplorer.loadSeedOrCaptcha(oForm.down('#login_seed'), oForm.down('img#captcha_image'), oForm.down('div.dialogLegend'), 'before');
+							        }
+						        };
+						        connexion.setMethod('put');
+						        connexion.sendAsync();
+						        oForm.userid.value = '';
+						        oForm.password.value = '';
+						        return false;
+					        });
+					      }
+					    }
+					  ]]></clientCallback>
+				  <serverCallback methodName="switchAction"></serverCallback>
+			  </processing>
+		  </action>
+		</actions>
+	</registry_contributions>
+</authdriver>

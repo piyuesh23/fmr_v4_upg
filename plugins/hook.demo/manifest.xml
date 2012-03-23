@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hook id="hook.demo">
+	<registry_contributions>
+		<client_configs uuidAttr="name">
+				<template name="head" element="ajxp_desktop" position="before"><![CDATA[
+					<div id="optional_header_div">
+						<span class="logo"><h1>HighWire</h1></span>
+						<h2 class="fm">File Manager</h2>
+						<h3 class="pubname-header">Publisher Name</h3>
+						<div id ="preview-repo-header" align = "center"></div>
+					</div>
+				]]></template>
+
+				<template name="bottom" element="ajxp_desktop" position="bottom"><![CDATA[
+					<div id="optional_bottom_div" style="height:40px; width:100%;">
+						<span class ="jams"><a href="javascript:history.go(-1);">JAMS</a></span>
+						<span class ="jname"><a href="#">Journal Name</a></span>
+                        <span class ="help"><a href="/ajaxplorer/EnhancedFileManagerGuide.pdf" target="_blank" class="last">Help</a></span>
+					</div>
+				]]></template>
+			</client_configs>
+		</registry_contributions>
+<!--		<class_definition filename="plugins/hook.demo/class.HookDemo.php" classname="HookDemo"/> -->
+	</hook>

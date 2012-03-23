@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ajxp_plugin  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="file:../core.ajaxplorer/ajxp_registry.xsd" name="publish" enabled="true" label="CONF_MESSAGE[Publish Plugin]" description="CONF_MESSAGE[This is a plugin used to publish files from preview repository to the production repository.]" >
+
+  <client_settings>
+      <resources>
+          <i18n namespace="publish" path="plugins/action.publish/res/i18n"/>
+          <img_library alias="publish_images" path="plugins/action.publish"/>
+      </resources>
+  </client_settings>
+
+	<registry_contributions>
+    <actions>
+      <action name="publish">
+        <gui text="publish.1" title="publish.2" src="url.png" accessKey="s" hasAccessKey="true">
+            <context selection="true" dir="" recycle="hidden" actionBar="true" contextMenu="true" ajxpWidgets="ActionsToolbar" actionBarGroup="publish" behaviour="hidden"/>
+            <selectionContext dir="true" file="true" recycle="false" unique="false" image="true" editable="false" behaviour="hidden" symlink="false"></selectionContext>
+          </gui>
+          <rightsContext noUser="true" userLogged="only" read="true" write="true" adminOnly=""></rightsContext>
+        <processing>
+        <clientCallback prepareModal="true"><![CDATA[
+            var userSelection = ajaxplorer.getUserSelection();
+            var onLoad = function(oForm){
+              var selectednodes = ajaxplorer.getUserSelection()._selectedNodes;
+              var message = "Publish selected item to publisher's url";
+
+              if(selectednodes.length > 1) {
+                var message = "Publishing multiple items --are you sure you want to publish?";
+                ajaxplorer.multiple = true;
+              }
+	   		    	$(oForm).getElementsBySelector('span[id="publish_message"]')[0].innerHTML = message;
+					  };
+
+              var onSubmit = function(){
+						  var oForm = modal.getForm();
+              var publicUrl = ajxpServerAccessPath+'&get_action=publish';
+							publicUrl = userSelection.updateFormOrUrl(null,publicUrl);
+              var conn = new Connexion(publicUrl);
+                conn.setParameters(oForm.serialize(true));
+                conn.onComplete = function(transport){
+                  if(transport.responseText.indexOf('error') != -1) {
+                    if(ajaxplorer.multiple == true) {
+                      ajaxplorer.displayMessage("SUCCESS", "Files published successfully. Logs directory was not found. This action was not logged.");
+                    }
+                    else {
+                      ajaxplorer.displayMessage("SUCCESS", "File published successfully. Logs directory was not found. This action was not logged.");
+                    }
+                  }
+                  else {
+                    if(transport.responseText.indexOf("ERROR") == -1) {
+                      if(ajaxplorer.multiple == true) {
+                        ajaxplorer.displayMessage("SUCCESS", "Files published successfully");
+                        ajaxplorer.multiple = false;
+                      }
+                      else {
+                        ajaxplorer.displayMessage("SUCCESS", "File published successfully");
+                      }
+                    }
+                  }
+                }
+                conn.sendAsync();
+                hideLightBox(true);
+                return false;
+				    };
+					  modal.showDialogForm('Publish', 'publish_form', onLoad, onSubmit);
+					]]></clientCallback>
+        <clientForm id="publish_form"><![CDATA[
+  				<div id="publish_form" action="publish" box_width="200">
+  				<span id="publish_message"></span>
+  				</div>				]]>
+        </clientForm>
+				<serverCallback methodName="switchAction"></serverCallback>
+        </processing>
+      </action>
+    </actions>
+  </registry_contributions>
+	<class_definition filename="plugins/action.publish/class.PluginPublish.php" classname="PluginPublish"/>
+</ajxp_plugin>

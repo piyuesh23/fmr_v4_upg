@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ajxp_plugin  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="file:../core.ajaxplorer/ajxp_registry.xsd" name="publish" enabled="true" label="CONF_MESSAGE[Preview Plugin]" description="CONF_MESSAGE[This is a plugin used to preview files. ]" >
+
+  <client_settings>
+      <resources>
+          <i18n namespace="preview" path="plugins/action.preview/res/i18n"/>
+          <img_library alias="preview_images" path="plugins/action.preview/res/images"/>
+      </resources>
+  </client_settings>
+
+	<registry_contributions>
+    <actions>
+      <action name="preview">
+        <gui text="preview.1" title="preview.2" src="url.png" accessKey="i" hasAccessKey="true">
+            <context selection="true" dir="hidden" recycle="hidden" actionBar="true" ajxpWidgets="ActionsToolbar" contextMenu="true" actionBarGroup="get" behaviour="hidden"/>
+            <selectionContext dir="false" file="true" recycle="false" unique="true" editable="false" allowedMimes = "html,xhtml,htm" behaviour="hidden" symlink="false"></selectionContext>
+          </gui>
+          <rightsContext noUser="true" userLogged="only" read="true" write="true" adminOnly=""></rightsContext>
+        <processing>
+        <clientCallback prepareModal="true"><![CDATA[
+            var userSelection = ajaxplorer.getUserSelection();
+
+            var conn = new Connexion();
+            conn.addParameter("get_action", "preview");
+            conn.addParameter("file", userSelection.getUniqueNode().getPath());
+            conn.addParameter("dir", userSelection.getCurrentRep());
+            conn.onComplete = function(transport){
+              var response = transport.responseText;
+              window.open(response);
+            }
+            conn.sendAsync();
+					]]></clientCallback>
+
+				<serverCallback methodName="switchAction"></serverCallback>
+        </processing>
+      </action>
+    </actions>
+  </registry_contributions>
+	<class_definition filename="plugins/action.preview/class.PluginPreview.php" classname="PluginPreview"/>
+</ajxp_plugin>

@@ -1,0 +1,4 @@
+themes/oxygen/css/xtree.css
+themes/oxygen/css/screen.css
+themes/oxygen/css/ajaxplorer.css
+themes/oxygen/css/headerfooter.css

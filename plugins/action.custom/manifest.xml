@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ajxp_plugin  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="file:../core.ajaxplorer/ajxp_registry.xsd" name="custom" enabled="true" label="CONF_MESSAGE[Custom Plugin]" description="CONF_MESSAGE[This is a plugin for the custom actions defined for highwire.]" >
+
+  <client_settings>
+      <resources>
+          <i18n namespace="custom" path="plugins/action.custom/res/i18n"/>
+          <img_library alias="custom_images" path="plugins/action.custom"/>
+      </resources>
+  </client_settings>
+
+	<registry_contributions>
+    <actions>
+      <action name="check_symlink">
+		    <processing>
+			    <serverCallback methodName="switchAction"></serverCallback>
+		    </processing>
+		  </action>
+
+      <action name="check_site">
+		    <processing>
+			    <serverCallback methodName="switchAction"></serverCallback>
+		    </processing>
+		  </action>
+
+      <action name="get_repoid">
+			  <processing>
+				  <serverCallback methodName="switchAction"></serverCallback>
+			  </processing>
+  		</action>
+
+    <action name="get_metadata">
+			<processing>
+				<serverCallback methodName="switchAction"></serverCallback>
+			</processing>
+		</action>
+
+    <action name="get_topUrl">
+			<processing>
+				<serverCallback methodName="switchAction"></serverCallback>
+			</processing>
+		</action>
+
+    <action name="get_pubname">
+			<processing>
+				<serverCallback methodName="switchAction"></serverCallback>
+			</processing>
+		</action>
+
+    <action name="get_jname">
+			<processing>
+				<serverCallback methodName="switchAction"></serverCallback>
+			</processing>
+		</action>
+
+    <action name="get_preview_repo">
+			<processing>
+				<serverCallback methodName="switchAction"></serverCallback>
+			</processing>
+		</action>
+
+    <action name="get_publish_url">
+			<processing>
+				<serverCallback methodName="switchAction"></serverCallback>
+			</processing>
+		</action>
+
+		<action name="mkfile_external">
+			<processing>
+				<serverCallback methodName="switchAction"></serverCallback>
+			</processing>
+		</action>
+
+		<action name="put_content_ck">
+			<processing>
+				<serverCallback methodName="switchAction"></serverCallback>
+			</processing>
+    </action>
+<!--
+    <action name="check_existence">
+			<processing>
+				<serverCallback methodName="switchAction"></serverCallback>
+			</processing>
+		</action>
+-->
+		<action name="copy_backup">
+			<processing>
+				<serverCallback methodName="switchAction"></serverCallback>
+			</processing>
+		</action>
+
+		<action name="mkdir_backup">
+			<processing>
+				<serverCallback methodName="switchAction"></serverCallback>
+			</processing>
+		</action>
+
+    <action name="put_content_external">
+			<processing>
+				<serverCallback methodName="switchAction"></serverCallback>
+			</processing>
+		</action>
+    </actions>
+  </registry_contributions>
+	<class_definition filename="plugins/action.custom/class.CustomActions.php" classname="CustomActions"/>
+</ajxp_plugin>    

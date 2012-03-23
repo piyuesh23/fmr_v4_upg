@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ajxp_plugin  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="file:../core.ajaxplorer/ajxp_registry.xsd" name="revert" enabled="false" label="CONF_MESSAGE[Revert Plugin]" description="CONF_MESSAGE[This is a plugin used to revert files from a list of files in the backup folder.]" >
+
+  <client_settings>
+      <resources>
+          <i18n namespace="revert" path="plugins/action.revert/res/i18n"/>
+          <img_library alias="revert_images" path="plugins/action.revert/res/images"/>
+      </resources>
+  </client_settings>
+
+	<registry_contributions>
+    <actions>
+      <action name="revisions">
+        <gui text="revert.1" title="revert.2" src="url.png" accessKey="o" hasAccessKey="true">
+            <context selection="true" dir="hidden" recycle="hidden" actionBar="true" contextMenu="true" ajxpWidgets="ActionsToolbar" actionBarGroup="change" behaviour="hidden"/>
+            <selectionContext dir="false" file="true" recycle="false" unique="true" image="false" editable="false" behaviour="hidden" symlink="false"></selectionContext>
+          </gui>
+          <rightsContext noUser="true" userLogged="only" read="true" write="true" adminOnly=""></rightsContext>
+        <processing>
+        <clientCallback prepareModal="true"><![CDATA[
+            var userSelection = ajaxplorer.getUserSelection();
+	          var dialogLoadFunction = function(){
+            var conn = new Connexion();
+            conn.addParameter("get_action", "revisions");
+            conn.addParameter("file", userSelection.getUniqueNode().getPath());
+            conn.addParameter("dir", userSelection.getCurrentRep());
+            conn.onComplete = function(transport){
+              if(transport.responseText == "No revisions found for this file!!") {
+                    ajaxplorer.no_revisions = true;
+                  }
+              $('loaded_content').update(transport.responseText);
+              }
+              conn.sendSync();
+            };
+
+            var dialogSubmitFunction = function() {
+              if(ajaxplorer.no_revisions == true) {
+                hideLightBox(true);
+                ajaxplorer.no_revisions = '';
+                return false;
+              }
+              var file_revert = $('revisions').value;
+              var conn = new Connexion();
+              conn.addParameter('backup_revert', file_revert);
+              conn.addParameter('get_action', 'revert');
+              conn.addParameter('file', userSelection.getUniqueFileName());
+              conn.addParameter('dir', userSelection.getCurrentRep());
+              conn.onComplete = function(transport){
+                if(transport.responseText.indexOf("ERROR") == -1) {
+                  ajaxplorer.displayMessage("SUCCESS", "File replaced with version " + file_revert + ".");
+                }
+              }
+              conn.sendSync();
+              hideLightBox(true);
+              ajaxplorer.fireContextRefresh();
+              return false;
+            };
+            modal.showDialogForm("List Revisions", "revisions_form", dialogLoadFunction, dialogSubmitFunction);
+
+        ]]>
+        </clientCallback>
+        <clientForm id="revisions_form"><![CDATA[
+            <div id="revisions_form" box_width="300">
+            <div id="loaded_content"><p align="center"></p></div>
+            </div>
+        ]]></clientForm>
+
+				<serverCallback methodName="switchAction"></serverCallback>
+        </processing>
+      </action>
+    <action name="revert">
+			<processing>
+				<serverCallback methodName="switchAction"></serverCallback>
+			</processing>
+		</action>
+    </actions>
+  </registry_contributions>
+	<class_definition filename="plugins/action.revert/class.PluginRevert.php" classname="PluginRevert"/>
+</ajxp_plugin>

@@ -1,0 +1,83 @@
+#optional_header_div {
+    border: 0pt none;
+    margin: 5px 20px;
+}
+#optional_header_div .logo {
+     background: url("../images/hw-logo-lg.png") no-repeat scroll 0pt 70% transparent;
+     float: left;
+     height: 72px;
+     padding-right: 40px;
+     width: 290px;
+}
+#optional_header_div .logo h1 {
+    text-indent: -9999px;
+    display: block;
+    }
+#optional_header_div h2.fm {
+    color: #575757;
+    display: inline-block;
+    font-family: arial, helvetica, sans-serif;
+    font-size: 30px;
+    margin:  15px 0;
+    padding: 0 50px;
+    text-align: center;
+    *width: 400px;
+    *float: left;
+    width: 400px \9;
+    float: left \9;
+}
+#optional_header_div h3.pubname-header {
+     color: #575757;
+     font-family: arial, helvetica, sans-serif;
+     font-size: 30px;
+     display: inline-block;
+     margin: 15px 0;
+     padding: 0;
+     float: right;
+}
+#preview-repo-header {
+    clear: both;
+    font-family: arial, helvetica, sans-serif;
+    font-size: 15px;
+    padding-bottom: 5px;
+}
+#preview-repo-header span {
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    -khtml-border-radius: 5px;
+    border-radius: 5px;
+    background-color: #9E0B0F !important;
+    color: #fff;
+    padding: 6px;
+    margin: 10px auto;
+    width: 330px;
+}
+#preview-repo-header span {
+    behavior: url(../images/border-radius.htc);
+    border-radius: 5px;
+}
+#optional_bottom_div img {
+     border: 0pt none;
+}
+#optional_bottom_div {
+     clear: both;
+}
+#optional_bottom_div {
+     color: #575757;
+     font-family: arial, helvetica, sans-serif;
+     font-size: 11px;
+     margin: 5px auto;
+     position: relative;
+     text-align: left;
+     width: 952px;
+}
+#optional_bottom_div {
+     text-align: center;
+}
+#optional_bottom_div a {
+    border-right: 1px solid #575757;
+    padding: 0 10px;
+}
+#optional_bottom_div .last { border: none; }
+#optional_bottom_div .help a, #optional_bottom_div .help a:hover, #optional_bottom_div .help a:visited {color: #9e0b0f;}
+#optional_bottom_div a, #optional_bottom_div a:hover, #optional_bottom_div a:visited {color: #575757;}
