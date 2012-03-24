@@ -182,6 +182,41 @@ class AuthService
         $loginAttempt = AuthService::getBruteForceLoginArray();
         return !AuthService::checkBruteForceLogin($loginAttempt);
     }
+
+    /**
+     * @static
+     * @param AbstractAjxpUser $user
+     */
+    static function refreshRememberCookie($user){
+        $current = $_COOKIE["AjaXplorer-remember"];
+        if(!empty($current)){
+            $user->invalidateCookieString(substr($current, strpos($current, ":")+1));
+        }
+        $rememberPass = $user->getCookieString();
+        setcookie("AjaXplorer-remember", $user->id.":".$rememberPass, time()+3600*24*10);
+    }
+
+    /**
+     * @static
+     * @return bool
+     */
+    static function hasRememberCookie(){
+        return (isSet($_COOKIE["AjaXplorer-remember"]) && !empty($_COOKIE["AjaXplorer-remember"]));
+    }
+
+    /**
+     * @static
+     * Warning, must be called before sending other headers!
+     */
+    static function clearRememberCookie(){
+        $current = $_COOKIE["AjaXplorer-remember"];
+        $user = AuthService::getLoggedUser();
+        if(!empty($current) && $user != null){
+            $user->invalidateCookieString(substr($current, strpos($current, ":")+1));
+        }
+        setcookie("AjaXplorer-remember", "", time()-3600);
+    }
+
     /**
      * Log the user from its credentials
      * @static
@@ -193,7 +228,13 @@ class AuthService
      * @return int
      */
 	static function logUser($user_id, $pwd, $bypass_pwd = false, $cookieLogin = false, $returnSeed="")
-	{		
+	{
+        if($cookieLogin && !isSet($_COOKIE["AjaXplorer-remember"])){
+            return -5; // SILENT IGNORE
+        }
+        if($cookieLogin){
+            list($user_id, $pwd) = explode(":", $_COOKIE["AjaXplorer-remember"]);
+        }
 		$confDriver = ConfService::getConfStorageImpl();
 		if($user_id == null)
 		{
@@ -230,6 +271,7 @@ class AuthService
 		        if ($bruteForceLogin === FALSE){
 		            return -4;    
 		        }else{
+                    if($cookieLogin) return -5;
 					return -1;
 		        }
 			}
@@ -282,6 +324,7 @@ class AuthService
 	static function disconnect()
 	{
 		if(isSet($_SESSION["AJXP_USER"])){
+            AuthService::clearRememberCookie();
 			AJXP_Logger::logAction("Log Out");
 			unset($_SESSION["AJXP_USER"]);
 			if(ConfService::getCoreConf("SESSION_SET_CREDENTIALS", "auth")){
@@ -296,10 +339,8 @@ class AuthService
      * @return void
      */
 	public static function bootSequence(&$START_PARAMETERS){
-		/*
-		if(!is_readable(USERS_DIR)) $START_PARAMETERS["ALERT"] = "Warning, the users directory is not readable!";
-		else if(!is_writeable(USERS_DIR)) $START_PARAMETERS["ALERT"] = "Warning, the users directory is not writeable!";
-		*/
+
+        if(@file_exists(AJXP_CACHE_DIR."/admin_counted")) return;
 		$adminCount = AuthService::countAdminUsers();
 		if($adminCount == 0){
 			$authDriver = ConfService::getAuthDriverImpl();
@@ -320,6 +361,7 @@ class AuthService
 			$adminUser->save();
 			$START_PARAMETERS["ALERT"] .= "There is an admin user, but without admin right. Now any user can have the administration rights, \\n your 'admin' user was set with the admin rights. Please check that this suits your security configuration.";
     	}
+        @file_put_contents(AJXP_CACHE_DIR."/admin_counted", "true");
 	}
     /**
      * If the auth driver implementatino has a logout redirect URL, clear session and return it.
@@ -453,8 +495,8 @@ class AuthService
 		if($cookieString){		
 			$confDriver = ConfService::getConfStorageImpl();
 			$userObject = $confDriver->createUserObject($userId);	
-			$userCookieString = $userObject->getCookieString();
-			return ($userCookieString == $userPass);
+			$res = $userObject->checkCookieString($userPass);
+			return $res;
 		}		
 		$seed = $authDriver->getSeed(false);
 		if($seed != $returnSeed) return false;					
@@ -548,7 +590,7 @@ class AuthService
      * @static
      * @return array
      */
-	static function listUsers()
+	static function listUsers($regexp = null)
 	{
 		$authDriver = ConfService::getAuthDriverImpl();		
 		$confDriver = ConfService::getConfStorageImpl();
@@ -557,6 +599,7 @@ class AuthService
 		foreach (array_keys($users) as $userId)
 		{
 			if(($userId == "guest" && !ConfService::getCoreConf("ALLOW_GUEST_BROWSING", "auth")) || $userId == "ajxp.admin.users" || $userId == "") continue;
+            if($regexp != null && !preg_match($regexp, $userId)) continue;
 			$allUsers[$userId] = $confDriver->createUserObject($userId);
 		}
 		return $allUsers;

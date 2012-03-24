@@ -25,7 +25,7 @@ defined('AJXP_EXEC') or die( 'Access not allowed');
  * @package info.ajaxplorer.plugins
  * User Interface main implementation
  */
-class AJXP_ClientDriver extends AJXP_Plugin
+class AJXP_ClientDriver extends AJXP_Plugin 
 {
     private static $loadedBookmarks;
 
@@ -54,25 +54,25 @@ class AJXP_ClientDriver extends AJXP_Plugin
         if(!defined("AJXP_THEME_FOLDER")){
             define("CLIENT_RESOURCES_FOLDER", AJXP_PLUGINS_FOLDER."/gui.ajax/res");
             define("AJXP_THEME_FOLDER", CLIENT_RESOURCES_FOLDER."/themes/".$this->pluginConf["GUI_THEME"]);
-        }
+        }		
 		foreach($httpVars as $getName=>$getValue){
 			$$getName = AJXP_Utils::securePath($getValue);
 		}
 		if(isSet($dir) && $action != "upload") $dir = SystemTextEncoding::fromUTF8($dir);
 		$mess = ConfService::getMessages();
-
-		switch ($action){
+		
+		switch ($action){			
 			//------------------------------------
 			//	GET AN HTML TEMPLATE
 			//------------------------------------
 			case "get_template":
-
+			
 				HTMLWriter::charsetHeader();
 				$folder = CLIENT_RESOURCES_FOLDER."/html";
 				if(isSet($httpVars["pluginName"])){
-					$folder = "plugins/".$httpVars["pluginName"];
+					$folder = AJXP_INSTALL_PATH."/".AJXP_PLUGINS_FOLDER."/".AJXP_Utils::securePath($httpVars["pluginName"]);
 					if(isSet($httpVars["pluginPath"])){
-						$folder.= "/".$httpVars["pluginPath"];
+						$folder.= "/".AJXP_Utils::securePath($httpVars["pluginPath"]);
 					}
 				}
                 $crtTheme = $this->pluginConf["GUI_THEME"];
@@ -85,9 +85,9 @@ class AJXP_ClientDriver extends AJXP_Plugin
     					include($folder."/".$template_name);
                     }
 				}
-
+				
 			break;
-
+						
 			//------------------------------------
 			//	GET I18N MESSAGES
 			//------------------------------------
@@ -100,14 +100,14 @@ class AJXP_ClientDriver extends AJXP_Plugin
                 }
 				HTMLWriter::charsetHeader('text/javascript');
 				HTMLWriter::writeI18nMessagesClass(ConfService::getMessages($refresh));
-
+				
 			break;
-
+			
 			//------------------------------------
 			//	SEND XML REGISTRY
 			//------------------------------------
 			case "get_xml_registry" :
-
+				
 				$regDoc = AJXP_PluginsService::getXmlRegistry();
                 $changes = AJXP_Controller::filterActionsRegistry($regDoc);
                 if($changes) AJXP_PluginsService::updateXmlRegistry($regDoc);
@@ -124,24 +124,24 @@ class AJXP_ClientDriver extends AJXP_Plugin
 					header('Content-Type: application/xml; charset=UTF-8');
                     print(AJXP_XMLWriter::replaceAjxpXmlKeywords($regDoc->saveXML()));
 				}
-
+				
 			break;
-
+									
 			//------------------------------------
 			//	DISPLAY DOC
 			//------------------------------------
 			case "display_doc":
-
+			
 				HTMLWriter::charsetHeader();
-				echo HTMLWriter::getDocFile(htmlentities($_GET["doc_file"]));
-
+				echo HTMLWriter::getDocFile(AJXP_Utils::securePath(htmlentities($_GET["doc_file"])));
+				
 			break;
-
+			
 			//------------------------------------
 			//	CHECK UPDATE
 			//------------------------------------
 			case "check_software_update":
-
+			
 				$content = @file_get_contents(SOFTWARE_UPDATE_SITE."ajxp.version");
 				$message = $mess["345"];
 				if(isSet($content) && $content != ""){
@@ -161,16 +161,16 @@ class AJXP_ClientDriver extends AJXP_Plugin
 				}
 				HTMLWriter::charsetHeader("text/plain");
 				print($message);
-
+				
 			break;
-
+			
 
 			//------------------------------------
 			//	GET BOOT GUI
 			//------------------------------------
 			case "get_boot_gui":
-
-				header("X-UA-Compatible: chrome=1");
+				
+				header("X-UA-Compatible: chrome=1");			
 				HTMLWriter::charsetHeader();
 
 				/*if(!is_file(TESTS_RESULT_FILE)){
@@ -195,7 +195,7 @@ class AJXP_ClientDriver extends AJXP_Plugin
 							AuthService::disconnect();
 						}else{
 							$loggedUser = AuthService::getLoggedUser();
-							if(!$loggedUser->canRead(ConfService::getCurrentRootDirIndex())
+							if(!$loggedUser->canRead(ConfService::getCurrentRootDirIndex()) 
 									&& AuthService::getDefaultRootId() != ConfService::getCurrentRootDirIndex())
 							{
 								ConfService::switchRootDir(AuthService::getDefaultRootId());
@@ -203,9 +203,9 @@ class AJXP_ClientDriver extends AJXP_Plugin
 						}
 					}
 				}
-
+				
 				AJXP_Utils::parseApplicationGetParameters($_GET, $START_PARAMETERS, $_SESSION);
-
+				
 				$confErrors = ConfService::getErrors();
 				if(count($confErrors)){
 					$START_PARAMETERS["ALERT"] = implode(", ", array_values($confErrors));
@@ -236,13 +236,13 @@ class AJXP_ClientDriver extends AJXP_Plugin
 						$content = str_replace("//AJXP_JSON_START_PARAMETERS", "startParameters = ".$JSON_START_PARAMETERS.";", $content);
 					}
 					print($content);
-				}
+				}				
 			break;
 			//------------------------------------
 			//	GET CONFIG FOR BOOT
 			//------------------------------------
 			case "get_boot_conf":
-
+				
 				if(isSet($_GET["server_prefix_uri"])){
 					$_SESSION["AJXP_SERVER_PREFIX_URI"] = $_GET["server_prefix_uri"];
 				}
@@ -263,9 +263,9 @@ class AJXP_ClientDriver extends AJXP_Plugin
 				$config["usersEnabled"] = AuthService::usersEnabled();
 				$config["loggedUser"] = (AuthService::getLoggedUser()!=null);
 				$config["currentLanguage"] = ConfService::getLanguage();
-				$config["session_timeout"] = intval(ini_get("session.gc_maxlifetime"));
+				$config["session_timeout"] = intval(ini_get("session.gc_maxlifetime"));				
 				if(!isSet($this->pluginConf["CLIENT_TIMEOUT_TIME"]) || $this->pluginConf["CLIENT_TIMEOUT_TIME"] == ""){
-					$to = $config["session_timeout"];
+					$to = $config["session_timeout"]; 
 				}else{
 					$to = $this->pluginConf["CLIENT_TIMEOUT_TIME"];
 				}
@@ -274,7 +274,7 @@ class AJXP_ClientDriver extends AJXP_Plugin
 				$config["availableLanguages"] = ConfService::getConf("AVAILABLE_LANG");
 				$config["usersEditable"] = ConfService::getAuthDriverImpl()->usersEditable();
 				$config["ajxpVersion"] = AJXP_VERSION;
-				$config["ajxpVersionDate"] = AJXP_VERSION_DATE;
+				$config["ajxpVersionDate"] = AJXP_VERSION_DATE;				
 				if(stristr($_SERVER["HTTP_USER_AGENT"], "msie 6")){
 					$config["cssResources"] = array("css/pngHack/pngHack.css");
 				}
@@ -291,14 +291,14 @@ class AJXP_ClientDriver extends AJXP_Plugin
                 $config["theme"] = $this->pluginConf["GUI_THEME"];
 				header("Content-type:application/json;charset=UTF-8");
 				print(json_encode($config));
-
+				
 			break;
-
+					
 			default;
 			break;
 		}
-
-		return false;
+		
+		return false;		
 	}
 
     /**

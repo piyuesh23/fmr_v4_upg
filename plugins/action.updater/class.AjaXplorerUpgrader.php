@@ -76,7 +76,7 @@ class AjaXplorerUpgrader {
 
     static function getUpgradePath($url, $format = "php", $channel="stable"){
         $json = file_get_contents($url."?version=".AJXP_VERSION."&channel=".$channel);
-        if($format == "php") return json_decode($json);
+        if($format == "php") return json_decode($json, true);
         else return $json;
     }
 
@@ -162,6 +162,9 @@ class AjaXplorerUpgrader {
     function backupMarkedFiles(){
 
         $targetFolder = $this->installPath;
+        if(!is_array($this->markedFiles) || !count($this->markedFiles)){
+            return "Nothing to do";
+        }
         foreach($this->markedFiles as $index => $file){
             $file = trim($file);
             if(!empty($file) && is_file($targetFolder."/".$file)){
@@ -183,10 +186,14 @@ class AjaXplorerUpgrader {
         self::copy_r($this->workingFolder."/core", $targetFolder."/core");
         self::copy_r($this->workingFolder."/plugins", $targetFolder."/plugins");
         $rootFiles = glob($this->workingFolder."/*.php");
-        foreach($rootFiles as $file){
-            copy($file, $targetFolder."/".basename($file));
+        if($rootFiles !== false){
+            foreach($rootFiles as $file){
+                copy($file, $targetFolder."/".basename($file));
+            }
+            return "Upgraded core, plugins and base access points.";
+        }else{
+            return "Upgrade core and plugins. Nothing to do at the base";
         }
-        return "Upgraded core, plugins and base access points.";
     }
 
     function restoreMarkedFiles(){
@@ -210,9 +217,11 @@ class AjaXplorerUpgrader {
 
     function duplicateConfFiles(){
         $confFiles = glob($this->workingFolder."/conf/*.php");
-        foreach($confFiles as $file){
-            $newFileName = $this->installPath."/conf/".basename($file).".new-".date("Ymd");
-            copy($file, $newFileName);
+        if($confFiles !== false){
+            foreach($confFiles as $file){
+                $newFileName = $this->installPath."/conf/".basename($file).".new-".date("Ymd");
+                copy($file, $newFileName);
+            }
         }
         return "Successfully copied ".count($confFiles)." files inside config folder (not overriden, please review them)";
     }
@@ -461,6 +470,7 @@ class AjaXplorerUpgrader {
 
         foreach($itemsToCopy as $item){
             $files = glob($oldLocation."/".$item["mask"]);
+            if($files === false) continue;
             foreach ($files as $fileOrFolder){
                 $target = AJXP_INSTALL_PATH."/".$item["target"];
                 if(is_file($fileOrFolder)){
@@ -485,7 +495,7 @@ class AjaXplorerUpgrader {
         }
 
         // FILTER THE CONF FILE TO REMOVE ALL CONSTANTS
-        $originalConfdir = $oldLocation."/server/conf/";
+        $originalConfdir = $oldLocation."/server/conf";
         $lines = file($originalConfdir."/conf.php");
         $filteredLines = array();
         $mutedConstants = array();

@@ -82,7 +82,7 @@ if(AuthService::usersEnabled())
 			print json_encode(array("seed" => $seed, "captcha" => true));
 		}else{
 			HTMLWriter::charsetHeader("text/plain");
-			print $seed;
+			print $seed;		
 		}
 		exit(0);
 	}else if($action == "get_secure_token"){
@@ -120,9 +120,9 @@ if(AuthService::usersEnabled())
       }
 
 			if($rememberMe && $loggingResult == 1){
-				$rememberLogin = $userId;
+				$rememberLogin = "notify";
+				$rememberPass = "notify";
 				$loggedUser = AuthService::getLoggedUser();
-				$rememberPass =  $loggedUser->getCookieString();
 			}
 			if($loggingResult == 1){
 				session_regenerate_id(true);
@@ -133,9 +133,9 @@ if(AuthService::usersEnabled())
 			}
 		}
 	}
-	else
+	else 
 	{
-		AuthService::logUser(null, null);
+		AuthService::logUser(null, null);	
 	}
 	// Check that current user can access current repository, try to switch otherwise.
 	$loggedUser = AuthService::getLoggedUser();
@@ -157,15 +157,7 @@ if(AuthService::usersEnabled())
       $context = $query_param['context'];
       $ac_url = $query_param['ac-url'];
     }
-#		if(isSet($_SESSION["PENDING_REPOSITORY_ID"]) && isSet($_SESSION["PENDING_FOLDER"])){
-#			$loggedUser->setArrayPref("history", "last_repository", $_SESSION["PENDING_REPOSITORY_ID"]);
-#			$loggedUser->setPref("pending_folder", $_SESSION["PENDING_FOLDER"]);
-#			$loggedUser->save();
-#			AuthService::updateUser($loggedUser);
-#			unset($_SESSION["PENDING_REPOSITORY_ID"]);
-#			unset($_SESSION["PENDING_FOLDER"]);
-#		}
-    error_log("session".$_SESSION['test']);
+
 		if((!empty($context)) && (!$_SESSION['test'])) {
       $currentRepoObject = ConfService::getRepositoryByAlias($context.'-preview-site');
       $currentRepoId = $currentRepoObject->uuid;
@@ -180,13 +172,11 @@ if(AuthService::usersEnabled())
 		if($defaultRepoId == -1){
 			AuthService::disconnect();
 			$loggingResult = -3;
-	  }
-		else {
-			if($lastRepoId !== "" && $lastRepoId!==$currentRepoId && !isSet($httpVars["tmp_repository_id"]) && $loggedUser->canSwitchTo($lastRepoId) && ($_SESSION['test'])){
+		}else {
+			if($lastRepoId !== "" && $lastRepoId!==$currentRepoId && !isSet($httpVars["tmp_repository_id"]) && $loggedUser->canSwitchTo($lastRepoId)){
 				ConfService::switchRootDir($lastRepoId);
 			}
       elseif((!empty($context)) && $loggedUser->canSwitchTo($currentRepoId) && (!$_SESSION['test'])) {
-        error_log('switching using'.$currentRepoId);
         ConfService::switchRootDir($currentRepoId);
         $_SESSION['test'] = true;
       }
@@ -205,13 +195,16 @@ if(AuthService::usersEnabled())
 	}
 	if(isset($loggingResult))
 	{
+        if($loggedUser != null && (AuthService::hasRememberCookie() || (isSet($rememberMe) && $rememberMe ==true))){
+            AuthService::refreshRememberCookie($loggedUser);
+        }
 		AJXP_XMLWriter::header();
 		AJXP_XMLWriter::loggingResult($loggingResult, $rememberLogin, $rememberPass, $secureToken);
 		AJXP_XMLWriter::close();
 		exit(1);
 	}
 }else{
-	AJXP_Logger::debug(ConfService::getCurrentRootDirIndex());
+	AJXP_Logger::debug(ConfService::getCurrentRootDirIndex());	
 }
 
 //Set language
@@ -224,7 +217,7 @@ else if(isSet($_COOKIE["AJXP_lang"])) ConfService::setLanguage($_COOKIE["AJXP_la
 //------------------------------------------------------------
 if(AuthService::usersEnabled())
 {
-	$loggedUser = AuthService::getLoggedUser();
+	$loggedUser = AuthService::getLoggedUser();	
 	if($action == "upload" && ($loggedUser == null || !$loggedUser->canWrite(ConfService::getCurrentRootDirIndex()."")) && isSet($_FILES['Filedata']))
 	{
 		header('HTTP/1.0 ' . '410 Not authorized');

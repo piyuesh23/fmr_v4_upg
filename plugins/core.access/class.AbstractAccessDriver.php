@@ -26,24 +26,24 @@ defined('AJXP_EXEC') or die( 'Access not allowed');
  * Abstract representation of an action driver. Must be implemented.
  */
 class AbstractAccessDriver extends AJXP_Plugin {
-
+	
 	/**
 	* @var Repository
 	*/
 	public $repository;
 	public $driverType = "access";
-
+		
 	public function init($repository, $options = null){
 		//$this->loadActionsFromManifest();
 		parent::init($options);
 		$this->repository = $repository;
 	}
-
+	
 	function initRepository(){
 		// To be implemented by subclasses
 	}
-
-
+	
+	
 	function accessPreprocess($actionName, &$httpVars, &$filesVar)
 	{
 		if($actionName == "cross_copy"){
@@ -106,12 +106,13 @@ class AbstractAccessDriver extends AJXP_Plugin {
      */
     function makeSharedRepositoryOptions($httpVars, $repository){}
 
-
+       
     function crossRepositoryCopy($httpVars){
+    	
     	ConfService::detectRepositoryStreams(true);
     	$mess = ConfService::getMessages();
-  		$selection = new UserSelection();
-	  	$selection->initFromHttpVars($httpVars);
+		$selection = new UserSelection();
+		$selection->initFromHttpVars($httpVars);
     	$files = $selection->getFiles();
     	$this->cross_create_backup($httpVars['dest'], $files, 'copy', $httpVars['dest_repository_id']);
     	$accessType = $this->repository->getAccessType();
@@ -119,8 +120,8 @@ class AbstractAccessDriver extends AJXP_Plugin {
     	$repositoryId = $httpVars['source_repoid'];
     	$plugin = AJXP_PluginsService::findPlugin("access", $accessType);
     	$origWrapperData = $plugin->detectStreamWrapper(true);
-    	$origStreamURL = $origWrapperData["protocol"]."://$repositoryId";
-
+    	$origStreamURL = $origWrapperData["protocol"]."://$repositoryId";    	
+    	
     	$destRepoId = $httpVars["dest_repository_id"];
     	$destRepoObject = ConfService::getRepositoryById($destRepoId);
     	$destRepoAccess = $destRepoObject->getAccessType();
@@ -136,7 +137,7 @@ class AbstractAccessDriver extends AJXP_Plugin {
 	    		throw new Exception($mess[364]);
 	    	}
     	}
-
+    	
     	$messages = array();
     	foreach ($files as $file){
     		$origFile = $origStreamURL.$file;
@@ -145,9 +146,9 @@ class AbstractAccessDriver extends AJXP_Plugin {
     		$bName = basename($file);
     		if($localName != ""){
     			$bName = $localName;
-    		}
-    		$destFile = $destStreamURL.SystemTextEncoding::fromUTF8($httpVars["dest"])."/".$bName;
-    		AJXP_Logger::debug("Copying $origFile to $destFile");
+    		}    		
+    		$destFile = $destStreamURL.SystemTextEncoding::fromUTF8($httpVars["dest"])."/".$bName;    		
+    		AJXP_Logger::debug("Copying $origFile to $destFile");    		
     		if(!is_file($origFile)){
           error_log('cannot find'.$origFile);
     			throw new Exception("Cannot find $origFile");
@@ -162,42 +163,42 @@ class AbstractAccessDriver extends AJXP_Plugin {
 				fwrite($destHandler, fread($origHandler, 4096));
 			}
 			fflush($destHandler);
-			fclose($origHandler);
-			fclose($destHandler);
+			fclose($origHandler); 
+			fclose($destHandler);			
 			$messages[] = $mess[34]." ".SystemTextEncoding::toUTF8(basename($origFile))." ".(isSet($httpVars["moving_files"])?$mess[74]:$mess[73])." ".SystemTextEncoding::toUTF8($destFile);
     	}
-    	AJXP_XMLWriter::header();
+    	AJXP_XMLWriter::header();    	
     	if(count($errorMessages)){
     		AJXP_XMLWriter::sendMessage(null, join("\n", $errorMessages), true);
     	}
     	AJXP_XMLWriter::sendMessage(join("\n", $messages), null, true);
     	AJXP_XMLWriter::close();
     }
-
+    
     /**
-     *
+     * 
      * Try to reapply correct permissions
      * @param oct $mode
      * @param Repository $repoObject
      * @param Function $remoteDetectionCallback
      */
     public static function fixPermissions(&$stat, $repoObject, $remoteDetectionCallback = null){
-
-        $fixPermPolicy = $repoObject->getOption("FIX_PERMISSIONS");
+    	
+        $fixPermPolicy = $repoObject->getOption("FIX_PERMISSIONS");    	
     	$loggedUser = AuthService::getLoggedUser();
     	if($loggedUser == null){
     		return;
     	}
     	$sessionKey = md5($repoObject->getId()."-".$loggedUser->getId()."-fixPermData");
 
-
-    	if(!isSet($_SESSION[$sessionKey])){
+    	
+    	if(!isSet($_SESSION[$sessionKey])){			
     	    if($fixPermPolicy == "detect_remote_user_id" && $remoteDetectionCallback != null){
     	    	list($uid, $gid) = call_user_func($remoteDetectionCallback, $repoObject);
     	    	if($uid != null && $gid != null){
     	    		$_SESSION[$sessionKey] = array("uid" => $uid, "gid" => $gid);
-    	    	}
-
+    	    	} 
+		    	
 	    	}else if(substr($fixPermPolicy, 0, strlen("file:")) == "file:"){
 	    		$filePath = AJXP_VarsFilter::filter(substr($fixPermPolicy, strlen("file:")));
 	    		if(file_exists($filePath)){
@@ -218,29 +219,29 @@ class AbstractAccessDriver extends AJXP_Plugin {
 	    	if(!isSet($_SESSION[$sessionKey])){
 	    		$_SESSION[$sessionKey] = array(null, null);
 	    	}
-
+    		
     	}else{
     		$data = $_SESSION[$sessionKey];
     		if(!empty($data)){
     			if(isSet($data["uid"])) $uid = $data["uid"];
     			if(isSet($data["gid"])) $gid = $data["gid"];
-    		}
+    		}    		
     	}
-
+	    	
     	$p = $stat["mode"];
     	$st = sprintf("%07o", ($p & 7777770));
     	AJXP_Logger::debug("FIX PERM DATA ($fixPermPolicy, $st)".$p,sprintf("%o", ($p & 000777)));
     	if($p != NULL){
             $isdir = ($p&0040000?true:false);
             $changed = false;
-	    	if( ( isSet($uid) && $stat["uid"] == $uid ) || $fixPermPolicy === "u"  ) {
+	    	if( ( isSet($uid) && $stat["uid"] == $uid ) || $fixPermPolicy == "user"  ) {
     			AJXP_Logger::debug("upgrading abit to ubit");
                 $changed = true;
     			$p  = $p&7777770;
     			if( $p&0x0100 ) $p += 04;
 	    		if( $p&0x0080 ) $p += 02;
 	    		if( $p&0x0040 ) $p += 01;
-	    	}else if( ( isSet($gid) && $stat["gid"] == $gid )  || $fixPermPolicy === "g"  ) {
+	    	}else if( ( isSet($gid) && $stat["gid"] == $gid )  || $fixPermPolicy == "group"  ) {
 	    		AJXP_Logger::debug("upgrading abit to gbit");
                 $changed = true;
     			$p  = $p&7777770;
@@ -250,14 +251,14 @@ class AbstractAccessDriver extends AJXP_Plugin {
 	    	}
             if($isdir && $changed){
                 $p += 0040000;
-            }
+            } 
 			$stat["mode"] = $stat[2] = $p;
     		AJXP_Logger::debug("FIXED PERM DATA ($fixPermPolicy)",sprintf("%o", ($p & 000777)));
     	}
     }
-
+    
     protected function resetAllPermission($value){
-
+    	
     }
 
 /*-- custom code for highwire file backup when copying between two different repositories. --*/

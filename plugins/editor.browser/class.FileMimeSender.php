@@ -26,7 +26,7 @@ defined('AJXP_EXEC') or die( 'Access not allowed');
  * Extract the mimetype of a file and send it to the browser
  */
 class FileMimeSender extends AJXP_Plugin {
-
+    
     public function switchAction($action, $httpVars, $filesVars) {
 
         if(!isSet($this->actions[$action]))
@@ -36,7 +36,7 @@ class FileMimeSender extends AJXP_Plugin {
 
         if(!$repository->detectStreamWrapper(true))
             return false;
-
+        
         if(AuthService::usersEnabled()){
             $loggedUser = AuthService::getLoggedUser();
             if($loggedUser === null && ConfService::getCoreConf("ALLOW_GUEST_BROWSING", "auth")){
@@ -48,10 +48,10 @@ class FileMimeSender extends AJXP_Plugin {
                 return false;
             }
         }
-
+        
         $streamData = $repository->streamData;
         $destStreamURL = $streamData["protocol"] . "://" . $repository->getId();
-
+        
         if($action == "open_file") {
             $file = AJXP_Utils::decodeSecureMagic($httpVars["file"]);
             if(!file_exists($destStreamURL . $file)){
@@ -61,7 +61,7 @@ class FileMimeSender extends AJXP_Plugin {
 
             $filesize = filesize($destStreamURL . $file);
             $fp = fopen($destStreamURL . $file, "rb");
-
+            
             //Get mimetype with fileinfo PECL extension
             if(class_exists("finfo")) {
                 $finfo = new finfo(FILEINFO_MIME);
@@ -89,6 +89,7 @@ class FileMimeSender extends AJXP_Plugin {
                     }
                 }
             }
+            fclose($fp);
             // If still no mimetype, give up and serve application/octet-stream
             if(empty($fileMime))
                 $fileMime = "application/octet-stream";

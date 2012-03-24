@@ -131,9 +131,9 @@ class PhpMailLiteNotifier extends AJXP_Plugin {
                          $file,
                          $folder,
                          $action);
-        
+        $body = str_replace($subject, $replace, $this->pluginConf["BODY"]);
         $mail->Subject = str_replace($subject, $replace, $this->pluginConf["SUBJECT"]);
-		$mail->Body = str_replace($subject, $replace, $this->pluginConf["BODY"]);
+		$mail->Body = nl2br($body);
 		$mail->AltBody = strip_tags($mail->Body);
 		
 		if(!$mail->Send())

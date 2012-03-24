@@ -130,14 +130,19 @@ class ShareCenter extends AJXP_Plugin{
             			break;
             		}
             		$loggedUser = AuthService::getLoggedUser();
-            		$allUsers = AuthService::listUsers();
-            		$crtValue = $httpVars["value"];
+                    $crtValue = $httpVars["value"];
+                    if(!empty($crtValue)) $regexp = '/^'.$crtValue.'/i';
+                    else $regexp = null;
+            		$allUsers = AuthService::listUsers($regexp);
             		$users = "";
+                    $limit = $this->pluginConf["SHARED_USERS_LIST_LIMIT"];
+                    $index = 0;
             		foreach ($allUsers as $userId => $userObject){
-            			if($crtValue != "" && (strstr($userId, $crtValue) === false || strstr($userId, $crtValue) != 0)) continue;
             			if( ( $userObject->hasParent() && $userObject->getParent() == $loggedUser->getId() ) || ConfService::getCoreConf("ALLOW_CROSSUSERS_SHARING") == true  ){
             				$users .= "<li>".$userId."</li>";
             			}
+                        $index ++;
+                        if($index == $limit) break;
             		}
             		if(strlen($users)) {
             			print("<ul>".$users."</ul>");
@@ -343,8 +348,8 @@ class ShareCenter extends AJXP_Plugin{
     		return "ERROR : MCrypt must be installed to use publiclets!";
     	}
         $this->initPublicFolder($downloadFolder);
-        $data["PLUGIN_ID"] = $accessDriver->id;
-        $data["BASE_DIR"] = $accessDriver->baseDir;
+        $data["PLUGIN_ID"] = $accessDriver->getId();
+        $data["BASE_DIR"] = $accessDriver->getBaseDir();
         $data["REPOSITORY"] = $repository;
         if(AuthService::usersEnabled()){
         	$data["OWNER_ID"] = AuthService::getLoggedUser()->getId();
@@ -382,6 +387,7 @@ class ShareCenter extends AJXP_Plugin{
         if (@file_put_contents($downloadFolder."/".$hash.".php", $fileData) === FALSE){
             return "Can't write to PUBLIC URL";
         }
+        @chmod($downloadFolder."/".$hash.".php", 0755);
         PublicletCounter::reset($hash);
         return $this->buildPublicletLink($hash);
     }
@@ -422,7 +428,7 @@ class ShareCenter extends AJXP_Plugin{
         @copy($pDir."/res/button_cancel.png", $downloadFolder."/button_cancel.png");
         @copy($pDir."/res/drive_harddisk.png", $downloadFolder."/drive_harddisk.png");
         @copy(AJXP_INSTALL_PATH."/server/index.html", $downloadFolder."/index.html");
-        file_put_contents($downloadFolder."/.htaccess", "ErrorDocument 404 ".$this->buildPublicDlURL()."/404.html");
+        file_put_contents($downloadFolder."/.htaccess", "ErrorDocument 404 ".$this->buildPublicDlURL()."/404.html\n<Files \".ajxp_*\">\ndeny from all\n</Files>");
         $content404 = file_get_contents($pDir."/res/404.html");
         $content404 = str_replace(array("AJXP_MESSAGE_TITLE", "AJXP_MESSAGE_LEGEND"), array($sTitle, $sLegend), $content404);
         file_put_contents($downloadFolder."/404.html", $content404);
@@ -489,15 +495,17 @@ class ShareCenter extends AJXP_Plugin{
         require_once($filePath);
         $driver = new $className($data["PLUGIN_ID"], $data["BASE_DIR"]);
         $driver->loadManifest();
-        if($driver->hasMixin("credentials_consumer") && isSet($data["SAFE_USER"]) && isSet($data["SAFE_PASS"])){
-        	// FORCE SESSION MODE
-        	AJXP_Safe::getInstance()->forceSessionCredentialsUsage();
-        	AJXP_Safe::storeCredentials($data["SAFE_USER"], $data["SAFE_PASS"]);
-        }
+
         $hash = md5(serialize($data));
         PublicletCounter::increment($hash);
 
         AuthService::logUser($data["OWNER_ID"], "", true);
+        if($driver->hasMixin("credentials_consumer") && isSet($data["SAFE_USER"]) && isSet($data["SAFE_PASS"])){
+            // FORCE SESSION MODE
+            AJXP_Safe::getInstance()->forceSessionCredentialsUsage();
+            AJXP_Safe::storeCredentials($data["SAFE_USER"], $data["SAFE_PASS"]);
+        }
+
         $repoObject = $data["REPOSITORY"];
         ConfService::switchRootDir($repoObject->getId());
         ConfService::loadRepositoryDriver();
@@ -536,7 +544,11 @@ class ShareCenter extends AJXP_Plugin{
             $users = array_filter(array_map("trim", explode(",", str_replace("\n", ",",$httpVars["shared_user"]))), array("AuthService","userExists"));
         }
         if(isSet($httpVars["new_shared_user"]) && ! empty($httpVars["new_shared_user"])){
-            array_push($users, AJXP_Utils::decodeSecureMagic($httpVars["new_shared_user"], AJXP_SANITIZE_ALPHANUM));
+            $newshareduser = AJXP_Utils::decodeSecureMagic($httpVars["new_shared_user"], AJXP_SANITIZE_ALPHANUM);
+            if(!empty($this->pluginConf["SHARED_USERS_TMP_PREFIX"]) && strpos($newshareduser, $this->pluginConf["SHARED_USERS_TMP_PREFIX"])!==0 ){
+                $newshareduser = $this->pluginConf["SHARED_USERS_TMP_PREFIX"] . $newshareduser;
+            }
+            array_push($users, $newshareduser);
         }
 		//$userName = AJXP_Utils::decodeSecureMagic($httpVars["shared_user"], AJXP_SANITIZE_ALPHANUM);
 		$label = AJXP_Utils::decodeSecureMagic($httpVars["repo_label"]);

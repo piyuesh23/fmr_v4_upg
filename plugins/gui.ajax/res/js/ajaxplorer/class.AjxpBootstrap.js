@@ -28,7 +28,7 @@ Class.create("AjxpBootstrap", {
 	 */
 	parameters : $H({}),
 	/**
-	 * Constructor
+	 * Constructor 
 	 * @param startParameters Object The options
 	 */
 	initialize : function(startParameters){
@@ -36,22 +36,29 @@ Class.create("AjxpBootstrap", {
 		this.detectBaseParameters();
 		if(this.parameters.get("ALERT")){
 			window.setTimeout(function(){alert(this.parameters.get("ALERT"));}.bind(this),0);
-		}
+		}		
 		Event.observe(document, 'dom:loaded', function(){
 			this.insertBasicSkeleton(this.parameters.get('MAIN_ELEMENT'));
-			if(window.opener && window.opener.ajxpBootstrap){
-				this.parameters = window.opener.ajxpBootstrap.parameters;
-				// Handle queryString case, as it's not passed via get_boot_conf
-				var qParams = document.location.href.toQueryParams();
-				if(qParams['external_selector_type']){
-					this.parameters.set('SELECTOR_DATA', {type:qParams['external_selector_type'], data:qParams});
-				}else{
-					if(this.parameters.get('SELECTOR_DATA')) this.parameters.unset('SELECTOR_DATA');
-				}
-				this.refreshContextVariablesAndInit(new Connexion());
-			}else{
-				this.loadBootConfig();
-			}
+            var startedFromOpener = false;
+            try{
+                if(window.opener && window.opener.ajxpBootstrap){
+                    this.parameters = window.opener.ajxpBootstrap.parameters;
+                    // Handle queryString case, as it's not passed via get_boot_conf
+                    var qParams = document.location.href.toQueryParams();
+                    if(qParams['external_selector_type']){
+                        this.parameters.set('SELECTOR_DATA', {type:qParams['external_selector_type'], data:qParams});
+                    }else{
+                        if(this.parameters.get('SELECTOR_DATA')) this.parameters.unset('SELECTOR_DATA');
+                    }
+                    this.refreshContextVariablesAndInit(new Connexion());
+                    startedFromOpener = true;
+                }
+            }catch(e){
+                if(console && console.log) console.log(e);
+            }
+            if(!startedFromOpener){
+                this.loadBootConfig();
+            }
 		}.bind(this));
 		document.observe("ajaxplorer:before_gui_load", function(e){
 			var desktop = $(this.parameters.get('MAIN_ELEMENT'));
@@ -67,24 +74,19 @@ Class.create("AjxpBootstrap", {
 			}
 		}.bind(this));
 		document.observe("ajaxplorer:actions_loaded", function(){
-      if(ajaxplorer.ckeditor_close == true) {
-				ajaxplorer.actionBar.actions.unset("ext_select");
-				ajaxplorer.actionBar.fireContextChange();
-				ajaxplorer.actionBar.fireSelectionChange();
-      }
 			if(!this.parameters.get("SELECTOR_DATA") && ajaxplorer.actionBar.actions.get("ext_select")){
 				ajaxplorer.actionBar.actions.unset("ext_select");
 				ajaxplorer.actionBar.fireContextChange();
-				ajaxplorer.actionBar.fireSelectionChange();
+				ajaxplorer.actionBar.fireSelectionChange();	
 			}else if(this.parameters.get("SELECTOR_DATA")){
 				ajaxplorer.actionBar.defaultActions.set("file", "ext_select");
 			}
-		}.bind(this));
+		}.bind(this));					
 		document.observe("ajaxplorer:loaded", function(e){
 			this.insertAnalytics();
 			if(this.parameters.get("SELECTOR_DATA")){
 	    		ajaxplorer.actionBar.defaultActions.set("file", "ext_select");
-	    		ajaxplorer.actionBar.selectorData = new Hash(this.parameters.get("SELECTOR_DATA"));
+	    		ajaxplorer.actionBar.selectorData = new Hash(this.parameters.get("SELECTOR_DATA"));	    		
 			}
 		}.bind(this));
 	},
@@ -97,7 +99,7 @@ Class.create("AjxpBootstrap", {
 			url += '&server_prefix_uri=' + this.parameters.get('SERVER_PREFIX_URI');
 		}
 		var connexion = new Connexion(url);
-		connexion.onComplete = function(transport){
+		connexion.onComplete = function(transport){			
 			if(transport.responseXML && transport.responseXML.documentElement && transport.responseXML.documentElement.nodeName == "tree"){
 				var alert = XPathSelectSingleNode(transport.responseXML.documentElement, "message");
 				window.alert('Exception caught by application : ' + alert.firstChild.nodeValue);
@@ -120,7 +122,7 @@ Class.create("AjxpBootstrap", {
 				return;
 			}
 			this.parameters.update(data);
-
+			
 			if(this.parameters.get('SECURE_TOKEN')){
 				Connexion.SECURE_TOKEN = this.parameters.get('SECURE_TOKEN');
 			}
@@ -130,14 +132,14 @@ Class.create("AjxpBootstrap", {
 			}else{
 				this.parameters.set('ajxpServerAccess', this.parameters.get('ajxpServerAccess') + '?' + (Connexion.SECURE_TOKEN? 'secure_token='+Connexion.SECURE_TOKEN:''));
 			}
-
+			
 			this.refreshContextVariablesAndInit(connexion);
-
+			
 		}.bind(this);
 		connexion.sendSync();
-
+		
 	},
-
+	
 	refreshContextVariablesAndInit: function(connexion){
 		if(this.parameters.get('SECURE_TOKEN') && !Connexion.SECURE_TOKEN){
 			Connexion.SECURE_TOKEN = this.parameters.get('SECURE_TOKEN');
@@ -170,9 +172,9 @@ Class.create("AjxpBootstrap", {
 			window.ajaxplorer.currentLanguage = this.parameters.get("currentLanguage");
 		}
 		$('version_span').update(' - Version '+this.parameters.get("ajxpVersion") + ' - '+ this.parameters.get("ajxpVersionDate"));
-		window.ajaxplorer.init();
+		window.ajaxplorer.init();		
 	},
-
+	
 	/**
 	 * Detect the base path of the javascripts based on the script tags
 	 */
@@ -190,7 +192,7 @@ Class.create("AjxpBootstrap", {
 			}
 		}.bind(this) );
 		if(this.parameters.get("ajxpResourcesFolder")){
-			window.ajxpResourcesFolder = this.parameters.get("ajxpResourcesFolder");
+			window.ajxpResourcesFolder = this.parameters.get("ajxpResourcesFolder");		
 		}else{
 			alert("Cannot find resource folder");
 		}
@@ -202,7 +204,7 @@ Class.create("AjxpBootstrap", {
 		window.ajxpServerAccessPath = booterUrl;
 	},
 	/**
-	 * Inserts a progress bar
+	 * Inserts a progress bar 
 	 */
 	insertLoaderProgress : function(){
 		var html = '<div id="loading_overlay" style="background-color:#555555;opacity: 0.2;"></div>';
@@ -211,7 +213,7 @@ Class.create("AjxpBootstrap", {
 			}catch(e){
 				this.parameters.set('customWelcomeScreen','');
 			}
-		}
+		}		
 		if(this.parameters.get('customWelcomeScreen')){
 			html += this.parameters.get('customWelcomeScreen');
 		}else{
@@ -253,7 +255,7 @@ Class.create("AjxpBootstrap", {
 			boxImage	: window.ajxpResourcesFolder+'/images/progress_box.gif',			// boxImage : image around the progress bar
 			barImage	: window.ajxpResourcesFolder+'/images/progress_bar.gif',	// Image to use in the progressbar. Can be an array of images too.
 			height		: 11,										// Height of the progressbar - don't forget to adjust your image too!!!
-			onTick		: function(pbObj) {
+			onTick		: function(pbObj) { 
 				if(pbObj.getPercentage() == 100){
                     new Effect.Parallel([
                             new Effect.Opacity($('loading_overlay'),{sync:true,from:0.2,to:0,duration:0.8}),
@@ -271,16 +273,16 @@ Class.create("AjxpBootstrap", {
 				return true ;
 			}
 		};
-		window.loaderProgress = new JS_BRAMUS.jsProgressBar($('loaderProgress'), 0, options);
+		window.loaderProgress = new JS_BRAMUS.jsProgressBar($('loaderProgress'), 0, options); 
 	},
 	/**
 	 * Inserts Google Analytics Code
 	 */
-	insertAnalytics : function(){
+	insertAnalytics : function(){	
 		if(!this.parameters.get("googleAnalyticsData")) return;
 		var data = this.parameters.get("googleAnalyticsData");
 		window._gaq = window._gaq || [];
-		window._gaq.push(['_setAccount', data.id]);
+		window._gaq.push(['_setAccount', data.id]);		
 		if(data.domain) window._gaq.push(['_setDomainName', data.domain]);
 		window._gaq.push(['_trackPageview']);
 		window._gaTrackEvents = data.event;

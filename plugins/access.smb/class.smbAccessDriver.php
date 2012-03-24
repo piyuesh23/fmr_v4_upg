@@ -37,32 +37,23 @@ class smbAccessDriver extends fsAccessDriver
 		
 	function initRepository(){
 
-        require_once(AJXP_INSTALL_PATH."/".AJXP_PLUGINS_FOLDER."/access.smb/smb.php");
-
 		if(is_array($this->pluginConf)){
 			$this->driverConf = $this->pluginConf;
 		}else{
 			$this->driverConf = array();
 		}
+        $smbclientPath = $this->driverConf["SMBCLIENT"];
+        define ('SMB4PHP_SMBCLIENT', $smbclientPath);
+
+        require_once($this->getBaseDir()."/smb.php");
+
 
 		$create = $this->repository->getOption("CREATE");
 		$recycle = $this->repository->getOption("RECYCLE_BIN");
-		
+
 		$wrapperData = $this->detectStreamWrapper(true);
 		$this->wrapperClassName = $wrapperData["classname"];
 		$this->urlBase = $wrapperData["protocol"]."://".$this->repository->getId();
-		if(!is_dir($this->urlBase)){
-			//throw new AJXP_Exception("Cannot find base path ($this->urlBase) for your repository! Please check the configuration!");
-		}/*
-		if($recycle != ""){
-			if(!is_dir($this->urlBase."/".$recycle)){
-				@mkdir($this->urlBase."/".$recycle);
-				if(!is_dir($this->urlBase."/".$recycle)){
-					throw new AJXP_Exception("Cannot create recycle bin folder. Please check repository configuration or that your folder is writeable!");
-				}
-			}
-			RecycleBinManager::init($this->urlBase, "/".$recycle);
-		}*/
 	}
 	
 	/**

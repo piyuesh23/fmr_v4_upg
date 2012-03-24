@@ -31,10 +31,10 @@ Class.create("Ajaxplorer", {
 	 * Constructor.
 	 * @param loadRep String A base folder to load after initialization is complete
 	 * @param usersEnabled Boolean Whether users management is enabled or not
-	 * @param loggedUser String Already logged user.
+	 * @param loggedUser String Already logged user. 
 	 */
 	initialize: function(loadRep, usersEnabled, loggedUser)
-	{
+	{	
 		this._initLoadRep = loadRep;
 		this._initObj = true ;
 		this.usersEnabled = usersEnabled;
@@ -49,7 +49,7 @@ Class.create("Ajaxplorer", {
 		this._guiComponentsConfigs = new Hash();
 		this.appTitle = ajxpBootstrap.parameters.get("customWording").title || "AjaXplorer";
 	},
-
+	
 	/**
 	 * Real initialisation sequence. Will Trigger the whole GUI building.
 	 * Event ajaxplorer:loaded is fired at the end.
@@ -77,13 +77,13 @@ Class.create("Ajaxplorer", {
 		}.bind(this));
 
 		modal.setLoadingStepCounts(5);
-		this.loadXmlRegistry(true);
+		this.loadXmlRegistry(true);		
 		this.initTemplates();
 		modal.initForms();
 		this.initObjects();
 		window.setTimeout(function(){
 			document.fire('ajaxplorer:loaded');
-		}, 200);
+		}, 200);		
 	},
 	/**
 	 * Loads the XML Registry, an image of the application in its current state
@@ -118,7 +118,7 @@ Class.create("Ajaxplorer", {
 			connexion.addParameter('xPath', xPath);
 		}
 		if(sync){
-			connexion.sendSync();
+			connexion.sendSync();		
 		}else{
 			connexion.sendAsync();
 		}
@@ -146,13 +146,13 @@ Class.create("Ajaxplorer", {
 			if(parentNode && documentElement.firstChild){
 				//parentNode.ownerDocument.importNode(documentElement.firstChild);
 				parentNode.appendChild(documentElement.firstChild.cloneNode(true));
-			}
+			}			
 		}else{
 			if(documentElement.firstChild) this._registry.appendChild(documentElement.firstChild.cloneNode(true));
 		}
-		document.fire("ajaxplorer:registry_part_loaded", xPath);
+		document.fire("ajaxplorer:registry_part_loaded", xPath);		
 	},
-
+	
 	/**
 	 * Initialize GUI Objects
 	 */
@@ -168,7 +168,7 @@ Class.create("Ajaxplorer", {
 		  fade:true,
 		  zIndex:2000
 		});
-		var protoMenu = this.contextMenu;
+		var protoMenu = this.contextMenu;		
 		protoMenu.options.beforeShow = function(e){
 			this.options.lastElement = Event.element(e);
 			this.options.menuItems = ajaxplorer.actionBar.getContextActions(Event.element(e));
@@ -181,9 +181,9 @@ Class.create("Ajaxplorer", {
 			if(this.options.lastElement){
 				this.options.menuItems = ajaxplorer.actionBar.getContextActions(this.options.lastElement);
 				this.refreshList();
-			}
+			}			
 		}.bind(protoMenu));
-
+		
 		this.actionBar = new ActionsManager(this.usersEnabled);
 		if(this._registry){
 			this.actionBar.loadActionsFromRegistry(this._registry);
@@ -191,7 +191,7 @@ Class.create("Ajaxplorer", {
 		document.observe("ajaxplorer:registry_loaded", function(event){
 			this.actionBar.loadActionsFromRegistry(event.memo);
 		}.bind(this) );
-
+				
 		if(!Prototype.Browser.WebKit && !Prototype.Browser.IE){
 			this.history = new Proto.History(function(hash){
 				this.goTo(this.historyHashToPath(hash));
@@ -206,7 +206,7 @@ Class.create("Ajaxplorer", {
 			}.bind(this));
 		}
 		document.observe("ajaxplorer:context_changed", function(event){
-			if(this.skipLsHistory || !this.user || !this.user.getActiveRepository()) return;
+			if(this.skipLsHistory || !this.user || !this.user.getActiveRepository()) return;			
 			window.setTimeout(function(){
 				var data = this.user.getPreference("ls_history", true) || {};
 				data = new Hash(data);
@@ -216,12 +216,12 @@ Class.create("Ajaxplorer", {
 			}.bind(this), 100 );
 		}.bind(this) );
 		modal.updateLoadingProgress('Actions Initialized');
-
+		
 		this.activityMonitor = new ActivityMonitor(
-			window.ajxpBootstrap.parameters.get('session_timeout'),
-			window.ajxpBootstrap.parameters.get('client_timeout'),
+			window.ajxpBootstrap.parameters.get('session_timeout'), 
+			window.ajxpBootstrap.parameters.get('client_timeout'), 
 			window.ajxpBootstrap.parameters.get('client_timeout_warning'));
-
+		  
 		/*********************
 		/* USER GUI
 		/*********************/
@@ -239,10 +239,10 @@ Class.create("Ajaxplorer", {
 		this.blockShortcuts = false;
 		this.blockNavigation = false;
 		modal.updateLoadingProgress('Navigation loaded');
-
+		
 
 		this.tryLogUserFromCookie();
-		document.fire("ajaxplorer:registry_loaded", this._registry);
+		document.fire("ajaxplorer:registry_loaded", this._registry);		
 	},
 
     initAjxpWidgets : function(compRegistry){
@@ -299,12 +299,12 @@ Class.create("Ajaxplorer", {
 		}
 		if(ajxpClass && ajxpId && Class.objectImplements(ajxpClass, "IAjxpWidget")){
 			compRegistry.push({ajxpId:ajxpId, ajxpNode:domNode, ajxpClass:ajxpClass, ajxpOptions:ajxpOptions});
-		}
+		}		
 		$A(domNode.childNodes).each(function(node){
 			this.buildGUI(node, compRegistry);
 		}.bind(this) );
 	},
-
+	
 	/**
 	 * Parses a client_configs/template_part node
 	 */
@@ -325,9 +325,9 @@ Class.create("Ajaxplorer", {
             if(parts[i].firstChild && parts[i].firstChild.nodeType == 4 && parts[i].firstChild.nodeValue != ""){
                 cdataContent = parts[i].firstChild.nodeValue;
             }
-
+			
 			var ajxpClass = Class.getByName(ajxpClassName);
-			if(ajxpClass && ajxpId && Class.objectImplements(ajxpClass, "IAjxpWidget")){
+			if(ajxpClass && ajxpId && Class.objectImplements(ajxpClass, "IAjxpWidget")){				
 				toUpdate[ajxpId] = [ajxpClass, ajxpClassName, ajxpOptionsString, cdataContent];
 				this.templatePartsToRestore = this.templatePartsToRestore.without(ajxpId);
 			}
@@ -343,13 +343,13 @@ Class.create("Ajaxplorer", {
                 toUpdate[key] = [ajxpClass, ajxpClassName, ajxpOptionsString, cdataContent];
             }
 		}.bind(this));
-
+		
 		for(var id in toUpdate){
 			this.refreshGuiComponent(id, toUpdate[id][0], toUpdate[id][1], toUpdate[id][2], toUpdate[id][3]);
 		}
 		this.templatePartsToRestore = futurePartsToRestore;
 	},
-
+	
 	/**
 	 * Applies a template_part by removing existing components at this location
 	 * and recreating new ones.
@@ -359,14 +359,14 @@ Class.create("Ajaxplorer", {
 	 */
 	refreshGuiComponent:function(ajxpId, ajxpClass, ajxpClassName, ajxpOptionsString, cdataContent){
 		if(!window[ajxpId]) return;
-		// First destroy current component, unregister actions, etc.
+		// First destroy current component, unregister actions, etc.			
 		var oldObj = window[ajxpId];
 		if(oldObj.__className == ajxpClassName && oldObj.__ajxpOptionsString == ajxpOptionsString){
 			return;
 		}
 		var ajxpOptions = {};
 		if(ajxpOptionsString){
-			ajxpOptions = ajxpOptionsString.evalJSON();
+			ajxpOptions = ajxpOptionsString.evalJSON();			
 		}
 		if(Class.objectImplements(oldObj, "IFocusable")){
 			this._focusables = this._focusables.without(oldObj);
@@ -401,12 +401,12 @@ Class.create("Ajaxplorer", {
 		}
 
 		obj.__ajxpOptionsString = ajxpOptionsString;
-
+		
 		window[ajxpId] = obj;
 		obj.resize();
 		delete(oldObj);
 	},
-
+	
 	/**
 	 * Spreads a client_configs/component_config to all gui components.
 	 * It will be the mission of each component to check whether its for him or not.
@@ -419,7 +419,7 @@ Class.create("Ajaxplorer", {
 			this.setGuiComponentConfig(nodes[i]);
 		}
 	},
-
+	
 	/**
 	 * Apply the componentConfig to the AjxpObject of a node
 	 * @param domNode IAjxpWidget
@@ -459,10 +459,10 @@ Class.create("Ajaxplorer", {
                 hideLightBox();
                 this.actionBar.parseXmlMessage(transport.responseXML);
             }.bind(this);
-			connexion.sendAsync();
+			connexion.sendSync();
 		}
 	},
-
+			
 	/**
 	 * Translate the XML answer to a new User object
 	 * @param documentElement DOMNode The user fragment
@@ -474,7 +474,7 @@ Class.create("Ajaxplorer", {
 		if(userNode){
 			var userId = userNode.getAttribute('id');
 			var children = userNode.childNodes;
-			if(userId){
+			if(userId){ 
 				this.user = new User(userId, children);
 			}
 		}
@@ -482,17 +482,17 @@ Class.create("Ajaxplorer", {
 			document.fire("ajaxplorer:user_logged", this.user);
 		}
 	},
-
-
+		
+	
 	/**
-	 * Find the current repository (from the current user) and load it.
+	 * Find the current repository (from the current user) and load it. 
 	 */
 	loadActiveRepository : function(){
 		var repositoryObject = new Repository(null);
 		if(this.user != null)
 		{
 			var repId = this.user.getActiveRepository();
-			var repList = this.user.getRepositoriesList();
+			var repList = this.user.getRepositoriesList();			
 			repositoryObject = repList.get(repId);
 			if(!repositoryObject){
 				alert("No active repository found for user!");
@@ -506,14 +506,14 @@ Class.create("Ajaxplorer", {
 				this._initLoadRep = data.get(repId);
 			}
 		}
-		this.loadRepository(repositoryObject);
+		this.loadRepository(repositoryObject);		
 		if(repList && repId){
 			document.fire("ajaxplorer:repository_list_refreshed", {list:repList,active:repId});
 		}else{
 			document.fire("ajaxplorer:repository_list_refreshed", {list:false,active:false});
-		}
+		}		
 	},
-
+	
 	/**
 	 * Refresh the repositories list for the current user
 	 */
@@ -524,27 +524,27 @@ Class.create("Ajaxplorer", {
 			this.logXmlUser(this._registry, true);
 			repId = this.user.getActiveRepository();
 			repList = this.user.getRepositoriesList();
-			document.fire("ajaxplorer:repository_list_refreshed", {list:repList,active:repId});
+			document.fire("ajaxplorer:repository_list_refreshed", {list:repList,active:repId});			
 		}.bind(this));
 		this.loadXmlRegistry(false, "user/repositories");
 	},
-
+	
 	/**
 	 * Load a Repository instance
 	 * @param repository Repository
 	 */
 	loadRepository: function(repository){
-
+		
 		if(this.repositoryId != null && this.repositoryId == repository.getId()){
 			return;
 		}
-
+		
 		repository.loadResources();
-		var repositoryId = repository.getId();
-		var	newIcon = repository.getIcon();
-
+		var repositoryId = repository.getId();		
+		var	newIcon = repository.getIcon(); 
+				
 		this.skipLsHistory = true;
-
+		
 		var providerDef = repository.getNodeProviderDef();
 		if(providerDef != null){
 			var provider = eval('new '+providerDef.name+'()');
@@ -560,14 +560,14 @@ Class.create("Ajaxplorer", {
 		}
 		this._contextHolder.setRootNode(rootNode);
 		this.repositoryId = repositoryId;
-
+		
 		/*
-		if(this._initObj) {
+		if(this._initObj) { 
 			rootNode.load();
 			this._initObj = null ;
 		}
 		*/
-
+		
 		if(this._initLoadRep){
 			if(this._initLoadRep != "" && this._initLoadRep != "/"){
 				var copy = this._initLoadRep.valueOf();
@@ -586,7 +586,7 @@ Class.create("Ajaxplorer", {
 		}else{
 			this.skipLsHistory = false;
 		}
-
+		
 		rootNode.load();
 	},
 
@@ -604,15 +604,15 @@ Class.create("Ajaxplorer", {
 		connexion.onComplete = function(transport){
 			if(transport.responseJSON && transport.responseJSON.mode) this.tmpResTest = true;
 		}.bind(this);
-		connexion.sendSync();
+		connexion.sendSync();		
 		return this.tmpResTest;
 	},
-
+	
 	/**
 	 * Require a context change to the given path
 	 * @param nodeOrPath AjxpNode|String A node or a path
 	 */
-	goTo: function(nodeOrPath){
+	goTo: function(nodeOrPath){		
 		if(Object.isString(nodeOrPath)){
 			node = new AjxpNode(nodeOrPath);
 		}else{
@@ -620,12 +620,12 @@ Class.create("Ajaxplorer", {
 		}
 		this._contextHolder.requireContextChange(node);
 	},
-
+	
 	/**
 	 * Change the repository of the current user and reload list and current.
 	 * @param repositoryId String Id of the new repository
 	 */
-	triggerRepositoryChange: function(repositoryId){
+	triggerRepositoryChange: function(repositoryId){		
 		document.fire("ajaxplorer:trigger_repository_switch");
 		var connexion = new Connexion();
 		connexion.addParameter('get_action', 'switch_repository');
@@ -638,14 +638,14 @@ Class.create("Ajaxplorer", {
 		var root = this._contextHolder.getRootNode();
 		if(root){
 			this.skipLsHistory = true;
-			root.clear();
+			root.clear();			
 		}
 		connexion.sendAsync();
 	},
 
 	/**
-	 * Find Extension initialisation nodes (activeCondition, onInit, etc), parses
-	 * the XML and execute JS.
+	 * Find Extension initialisation nodes (activeCondition, onInit, etc), parses 
+	 * the XML and execute JS. 
 	 * @param xmlNode DOMNode The extension node
 	 * @param extensionDefinition Object Information already collected about this extension
 	 * @returns Boolean
@@ -663,7 +663,7 @@ Class.create("Ajaxplorer", {
 				openable : (xmlNode.getAttribute("openable") == "true"?true:false),
 				previewProvider: (xmlNode.getAttribute("previewProvider")=="true"?true:false),
 				order: (xmlNode.getAttribute("order")?parseInt(xmlNode.getAttribute("order")):0),
-				formId : xmlNode.getAttribute("formId") || null,
+				formId : xmlNode.getAttribute("formId") || null,				
 				text : MessageHash[xmlNode.getAttribute("text")],
 				title : MessageHash[xmlNode.getAttribute("title")],
 				icon : xmlNode.getAttribute("icon"),
@@ -695,7 +695,7 @@ Class.create("Ajaxplorer", {
 		}
 		return true;
 	},
-
+	
 	/**
 	 * Refresh the currently active extensions
 	 * Extensions are editors and uploaders for the moment.
@@ -707,7 +707,7 @@ Class.create("Ajaxplorer", {
 			var extensionDefinition = {
 				id : extensions[i].getAttribute("id"),
 				xmlNode : extensions[i],
-				resourcesManager : new ResourcesManager()
+				resourcesManager : new ResourcesManager()				
 			};
 			this._resourcesRegistry[extensionDefinition.id] = extensionDefinition.resourcesManager;
             var resourceNodes = XPathSelectNodes(extensions[i], "client_settings/resources|dependencies|clientForm");
@@ -721,7 +721,7 @@ Class.create("Ajaxplorer", {
 		}
 		ResourcesManager.prototype.loadAutoLoadResources(this._registry);
 	},
-
+	
 	getPluginConfigs : function(pluginQuery){
 		var properties = XPathSelectNodes(this._registry, 'plugins/'+pluginQuery+'/plugin_configs/property | plugins/ajxpcore[@id="core.'+pluginQuery+'"]/plugin_configs/property');
 		var configs = $H();
@@ -731,7 +731,7 @@ Class.create("Ajaxplorer", {
 		}
 		return configs;
 	},
-
+	
 	/**
 	 * Find the currently active extensions by type
 	 * @param extensionType String "editor" or "uploader"
@@ -741,7 +741,7 @@ Class.create("Ajaxplorer", {
 		var exts = $A();
 		return this._extensionsRegistry[extensionType];
 	},
-
+	
 	/**
 	 * Find a given editor by its id
 	 * @param editorId String
@@ -750,7 +750,7 @@ Class.create("Ajaxplorer", {
 	findEditorById : function(editorId){
 		return this._extensionsRegistry.editor.detect(function(el){return(el.id == editorId);});
 	},
-
+	
 	/**
 	 * Find Editors that can handle a given mime type
 	 * @param mime String
@@ -775,7 +775,7 @@ Class.create("Ajaxplorer", {
 		}
 		return editors;
 	},
-
+	
 	/**
 	 * Trigger the load method of the resourcesManager.
 	 * @param resourcesManager ResourcesManager
@@ -784,7 +784,7 @@ Class.create("Ajaxplorer", {
 		var registry = this._resourcesRegistry;
 		resourcesManager.load(registry);
 	},
-
+	
 	/**
 	 * Inserts the main template in the GUI.
 	 */
@@ -806,10 +806,10 @@ Class.create("Ajaxplorer", {
 				target.insert(obj);
 				obj[position].evalScripts();
 			}
-		}
-		modal.updateLoadingProgress('Html templates loaded');
+		}		
+		modal.updateLoadingProgress('Html templates loaded');	
 	},
-
+		
 	findOriginalTemplatePart : function(ajxpId){
 		var tmpElement = new Element("div", {style:"display:none;"});
 		$$("body")[0].insert(tmpElement);
@@ -819,7 +819,7 @@ Class.create("Ajaxplorer", {
 		tmpElement.remove();
 		return tPart;
 	},
-
+	
 	/**
 	 * Trigger a simple download
 	 * @param url String
@@ -856,20 +856,20 @@ Class.create("Ajaxplorer", {
 		}.bind(this);
 		connexion.sendSync();
 	},
-
+	
 	/**
 	 * Search all ajxp_message_id tags and update their value
 	 */
 	updateI18nTags: function(){
-		var messageTags = $$('[ajxp_message_id]');
-		messageTags.each(function(tag){
+		var messageTags = $$('[ajxp_message_id]');		
+		messageTags.each(function(tag){	
 			var messageId = tag.getAttribute("ajxp_message_id");
 			try{
 				tag.update(MessageHash[messageId]);
 			}catch(e){}
 		});
 	},
-
+	
 	/**
 	 * Trigger a captcha image
 	 * @param seedInputField HTMLInput The seed value
@@ -912,9 +912,9 @@ Class.create("Ajaxplorer", {
 				}
 			}
 		};
-		connexion.sendSync();
+		connexion.sendSync();		
 	},
-
+			
 	/**
 	 * Updates the browser history
 	 * @param path String Path
@@ -922,7 +922,7 @@ Class.create("Ajaxplorer", {
 	updateHistory: function(path){
 		if(this.history) this.history.historyLoad(this.pathToHistoryHash(path));
 	},
-
+	
 	/**
 	 * Translate the path to a history step. Return the count.
 	 * @param path String
@@ -939,12 +939,12 @@ Class.create("Ajaxplorer", {
 			if(pair.value == path) foundKey = pair.key;
 		});
 		if(foundKey != undefined) return foundKey;
-
+	
 		this.histCount++;
 		this.pathesHash.set(this.histCount, path);
 		return this.histCount;
 	},
-
+	
 	/**
 	 * Reverse operation
 	 * @param hash Integer
@@ -955,7 +955,7 @@ Class.create("Ajaxplorer", {
 		var path = this.pathesHash.get(hash);
 		if(path == undefined) return "/";
 		return path;
-	},
+	},	
 
 	/**
 	 * Accessor for updating the datamodel context
@@ -971,42 +971,42 @@ Class.create("Ajaxplorer", {
 			this._contextHolder.setSelectedNodes(ajxpSelectedNodes, selectionSource);
 		}
 	},
-
+	
 	/**
 	 * @returns AjxpDataModel
 	 */
 	getContextHolder : function(){
 		return this._contextHolder;
 	},
-
+	
 	/**
 	 * @returns AjxpNode
 	 */
 	getContextNode : function(){
 		return this._contextHolder.getContextNode() || new AjxpNode("");
 	},
-
+	
 	/**
 	 * @returns AjxpDataModel
 	 */
 	getUserSelection : function(){
 		return this._contextHolder;
-	},
-
+	},		
+	
 	/**
 	 * Accessor for datamodel.requireContextChange()
 	 */
 	fireContextRefresh : function(){
 		this.getContextHolder().requireContextChange(this.getContextNode(), true);
 	},
-
+	
 	/**
 	 * Accessor for datamodel.requireContextChange()
 	 */
 	fireNodeRefresh : function(nodePathOrNode){
 		this.getContextHolder().requireNodeReload(nodePathOrNode);
 	},
-
+	
 	/**
 	 * Accessor for datamodel.requireContextChange()
 	 */
@@ -1014,16 +1014,16 @@ Class.create("Ajaxplorer", {
 		if(this.getContextNode().isRoot()) return;
 		this.updateContextData(this.getContextNode().getParent());
 	},
-
+	
 	/**
 	 * @returns DOMDocument
 	 */
 	getXmlRegistry : function(){
 		return this._registry;
-	},
-
+	},	
+	
 	/**
-	 * Utility
+	 * Utility 
 	 * @returns Boolean
 	 */
 	cancelCopyOrMove: function(){
@@ -1031,28 +1031,28 @@ Class.create("Ajaxplorer", {
 		hideLightBox();
 		return false;
 	},
-
+		
 	/**
 	 * Blocks all access keys
 	 */
 	disableShortcuts: function(){
 		this.blockShortcuts = true;
 	},
-
+	
 	/**
 	 * Unblocks all access keys
 	 */
 	enableShortcuts: function(){
 		this.blockShortcuts = false;
 	},
-
+	
 	/**
 	 * blocks all tab keys
 	 */
 	disableNavigation: function(){
 		this.blockNavigation = true;
 	},
-
+	
 	/**
 	 * Unblocks all tab keys
 	 */
@@ -1070,16 +1070,16 @@ Class.create("Ajaxplorer", {
 
 	/**
 	 * Unblocks all access keys
-	 */
+	 */	
 	getActionBar: function(){
 		return this.actionBar;
 	},
-
+	
 	/**
-	 * Display an information or error message to the user
+	 * Display an information or error message to the user 
 	 * @param messageType String ERROR or SUCCESS
 	 * @param message String the message
-	 */
+	 */	
 	displayMessage: function(messageType, message){
 		var urls = parseUrl(message);
 		if(urls.length && this.user && this.user.repositories){
@@ -1091,7 +1091,7 @@ Class.create("Ajaxplorer", {
 		}
 		modal.displayMessage(messageType, message);
 	},
-
+	
 	/**
 	 * Focuses on a given widget
 	 * @param object IAjxpFocusable
@@ -1102,7 +1102,7 @@ Class.create("Ajaxplorer", {
 		});
 		object.focus();
 	},
-
+	
 	/**
 	 * Blur all widgets
 	 */
@@ -1111,15 +1111,15 @@ Class.create("Ajaxplorer", {
 			if(f.hasFocus) this._lastFocused = f;
 			f.blur();
 		}.bind(this) );
-	},
-
+	},	
+	
 	/**
 	 * Find last focused IAjxpFocusable and focus it!
 	 */
 	focusLast : function(){
 		if(this._lastFocused) this.focusOn(this._lastFocused);
 	},
-
+	
 	/**
 	 * Create a Tab navigation between registerd IAjxpFocusable
 	 */
@@ -1127,7 +1127,7 @@ Class.create("Ajaxplorer", {
 		var objects = this._focusables;
 		// ASSIGN OBSERVER
 		Event.observe(document, "keydown", function(e)
-		{
+		{			
 			if(e.keyCode == Event.KEY_TAB)
 			{
 				if(this.blockNavigation) return;

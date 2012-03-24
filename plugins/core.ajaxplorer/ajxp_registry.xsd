@@ -401,8 +401,11 @@
         <xs:complexType>
             <xs:attribute name="attributeName" use="required" type="xs:NCName"/>
             <xs:attribute name="defaultVisibilty" type="xs:NCName"/>
+            <xs:attribute name="defaultWidth" use="optional"/>
+            <xs:attribute name="fixedWidth" use="optional"/>
             <xs:attribute name="messageId" type="xs:integer"/>
             <xs:attribute name="messageString"/>
+            <xs:attribute name="modifier" use="optional"/>
             <xs:attribute name="sortType" use="required" type="xs:NCName"/>
         </xs:complexType>
     </xs:element>
@@ -410,6 +413,7 @@
         <xs:complexType>
             <xs:attribute name="attributeName" use="required" type="xs:NCName"/>
             <xs:attribute name="messageId" use="required" type="xs:string"/>
+            <xs:attribute name="defaultVisibilty" type="xs:NCName"/>
             <xs:attribute name="defaultWidth" use="optional"/>
             <xs:attribute name="fixedWidth" use="optional"/>
             <xs:attribute name="modifier" use="optional"/>
@@ -524,6 +528,7 @@
             <xs:attribute name="hookName" type="xs:NCName"/>
             <xs:attribute name="methodName" use="required" type="xs:NCName"/>
             <xs:attribute name="pluginId" use="optional" type="xs:NCName"/>
+            <xs:attribute name="defer" type="xs:boolean"/>
         </xs:complexType>
     </xs:element>
     <xs:element name="client_settings">
